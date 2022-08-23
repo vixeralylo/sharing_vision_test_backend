@@ -3,9 +3,13 @@ const bodyParser = require('body-parser');
 const app = express();
 const mysql = require('mysql');
 const port = 3000;
+const cors = require('cors');
  
 // parse application/json
 app.use(bodyParser.json());
+app.use(cors())
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
  
 //create database connection
 const conn = mysql.createConnection({
@@ -23,6 +27,7 @@ conn.connect((err) =>{
 
 //MEMBUAT ARTICLE BARU
 app.post('/article', (req, res) => {
+    res.header("Access-Control-Allow-Origin", "*");
     if(req.body.title.length < 20)
     {
         res.send({
@@ -65,12 +70,16 @@ app.post('/article', (req, res) => {
     let query = conn.query(sql, data,(err, results) => {
         if(err) throw err;
         res.send({
+            "status": 200, 
+            "error": "Sucess", 
+            "data": null
         });
     });
 });
 
 //MENAMPILKAN SELURUH DATA DENGAN PAGING
 app.get('/article/:limit/:offset', (req, res) => {
+    res.header("Access-Control-Allow-Origin", "*");
     let sql = "SELECT * FROM posts LIMIT "+req.params.limit+ " OFFSET "+req.params.offset;
     let query = conn.query(sql, (err, results) => {
         if(err) throw err;
@@ -82,6 +91,7 @@ app.get('/article/:limit/:offset', (req, res) => {
 
 //GET ARTICLE BY ID
 app.get('/article/:id', (req, res) => {
+    res.header("Access-Control-Allow-Origin", "*");
     let sql = "SELECT * FROM posts WHERE id = "+req.params.id;
     let query = conn.query(sql, (err, results) => {
         if(err) throw err;
@@ -94,6 +104,7 @@ app.get('/article/:id', (req, res) => {
 
 //EDIT ARTICLE BY ID
 app.post('/article/:id', (req, res) => {
+    res.header("Access-Control-Allow-Origin", "*");
     if(req.body.title.length < 20)
     {
         res.send({
@@ -126,16 +137,20 @@ app.post('/article/:id', (req, res) => {
             "data": null
         });return;
     } 
-    let sql = "UPDATE posts SET title='"+req.body.title+"', content='"+req.body.content+"', category='"+req.body.category+"', status='"+req.body.status.toUpperCase()+"' WHERE id="+req.params.id;
+    let sql = "UPDATE posts SET title='"+req.body.title+"', content='"+req.body.content.replace(/[^a-zA-Z ]/g, "")+"', category='"+req.body.category+"', status='"+req.body.status.toUpperCase()+"' WHERE id="+req.params.id;
     let query = conn.query(sql, (err, results) => {
         if(err) throw err;
         res.send({
+            "status": 200, 
+            "error": "Sucess", 
+            "data": null
         });
     });
 });
 
 //HAPUS DATA ARTICLE
 app.delete('/article/:id', (req, res) => {
+    res.header("Access-Control-Allow-Origin", "*");
     let sql = "DELETE FROM posts WHERE id="+req.params.id+"";
     let query = conn.query(sql, (err, results) => {
         if(err) throw err;
